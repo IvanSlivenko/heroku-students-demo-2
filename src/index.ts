@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cors());
+
 // const port = 3000;
 const port = process.env.PORT || 3000;
 const HTTP_STATUSES = {
@@ -42,6 +43,13 @@ const writeDb = (data: { courses: Course[] }) => {
 };
 
 app.use(express.json());
+
+// Робимо папку з index.html доступною
+app.use(express.static(__dirname));
+// Головний маршрут -> index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // 🔍 Отримати всі курси (з фільтром за назвою)
 app.get("/courses", (req, res) => {
