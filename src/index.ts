@@ -6,8 +6,8 @@ import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cors());
-const port = 3000;
-
+// const port = 3000;
+const port = process.env.PORT || 3000;
 const HTTP_STATUSES = {
   OK_200: 200,
   CREATED_201: 201,
