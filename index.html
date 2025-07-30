@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test Fetch</title>
+</head>
+<body>
+
+ <!-- Пошук всіх   --> 
+<button onclick="getAllCourses()">Пошук всіх</button>
+<script>
+  function getAllCourses() {
+    fetch('http://localhost:3000/courses', { method: 'GET' })
+      .then(res => res.json())
+      .then(json => console.log('Всі курси:', json))
+      .catch(err => console.error('Fetch error:', err));
+  }
+</script>
+
+
+  <!-- Пошук одного   --> 
+   <div>
+      <input type="number" id="courseIdInput" placeholder="Введіть ID курсу">
+      <button onclick="getOunCourses()">Пошук одного</button>
+   </div>
+  <script>
+    function getOunCourses() {
+    // let id = 1753644689634
+    const id = document.getElementById('courseIdInput').value;
+
+    if (!id || isNaN(id)) {
+      alert('Введіть коректний ID');
+      return;
+    }
+
+    fetch(`http://localhost:3000/courses/${id}`, {method : 'GET'})
+      .then(res => res.json())
+      .then(json => {console.log('Знайдено курс:',json);
+        document.getElementById('courseIdInput').value='';
+      })
+      .catch(err => console.error('Fetch error:', err));
+  }
+  </script>
+
+  <!-- Пошук за фільтром   -->
+   <div>
+  <input type="text" id="courseTitleFilter" placeholder="Введіть фрагмент для пошуку">
+  <button onclick="getOneCourseByFilter()">Пошук за фільтром</button>
+</div>
+<script>
+  function getOneCourseByFilter() {
+    const segmentTitle = document.getElementById('courseTitleFilter').value.trim();
+
+    if (!segmentTitle) {
+      alert('Введіть фрагмент назви курсу');
+      return;
+    }
+
+    fetch(`http://localhost:3000/courses?title=${encodeURIComponent(segmentTitle)}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Помилка на сервері');
+        }
+        return res.json();
+      })
+      .then(json => {
+        if (json.length === 0) {
+          console.log('Нічого не знайдено за фільтром.');
+        } else {
+          console.log('Результати фільтрації:', json);
+          document.getElementById('courseTitleFilter').value='';
+        }
+      })
+      .catch(err => console.error('Fetch error:', err.message));
+  }
+</script>
+
+  <!-- Пошук за фільтром без данних умови   -->
+  <!-- <script>
+    fetch('http://localhost:3000/courses', {method : 'GET'})
+      .then(res => res.json())
+      .then(json => console.log(json))
+      .catch(err => console.error('Fetch error:', err));
+  </script> -->
+
+    <!-- Створення за замовчуванням   -->
+    <!-- <script>
+      fetch('http://localhost:3000/courses', {method : 'POST'})
+        .then(res => res.json())
+        .then(json => console.log(json))
+        .catch(err => console.error('Fetch error:', err));
+    </script> -->
+
+  <!-- Створення з body   -->
+    <!-- <script>
+    fetch('http://localhost:3000/courses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: '' })
+    })
+      // .then(res => res.json())
+      .then(res => {
+      console.log('Status:', res.status);
+      return res.json();
+    })
+      .then(res => {
+      console.log('Status:', res.status);
+      return res.json();
+    })
+      .then(json => console.log(json))
+      .catch(err => console.error('Fetch error:', err));
+    </script> -->
+
+ 
+
+ <!-- Створення з body    var 2-->
+
+ <div>
+      <input type="text" id="courseTitleInput" placeholder="Введіть назву нового курсу">
+      <button onclick="CreateOunCourse()">Створення одного за назвою</button>
+   </div>
+ <script>
+  function CreateOunCourse() {
+
+  let currentTitle = document.getElementById('courseTitleInput').value;
+
+  if (currentTitle.trim() === '') {
+    throw new Error('Title is required (400)');
+}
+
+
+    fetch('http://localhost:3000/courses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: currentTitle })
+    })
+      .then(async res => {
+        // console.log('Status:', res.status);
+        const data = await res.json().catch(() => ({}));
+        if (res.status >= 400) {
+          console.warn('Server error response:', data);
+        } else {
+          console.log('Success:', data);
+          document.getElementById('courseTitleInput').value = ''; // Очистити input
+        }
+      })
+      .catch(err => console.error('Fetch error:', err));
+  }
+
+</script>
+
+ <!-- Видалення одного -->
+<div>
+  <input type="number" id="courseIdInputDelete" placeholder="Введіть ID курсу для видалення">
+  <button onclick="deleteCourseById()">Видалити курс</button>
+</div>
+<script>
+  function deleteCourseById() {
+    const DeletedId = document.getElementById('courseIdInputDelete').value.trim();
+
+    if (!DeletedId || isNaN(DeletedId)) {
+      alert('Введіть коректний ID курсу');
+      return;
+    }
+
+    fetch(`http://localhost:3000/courses/${DeletedId}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Курс з id=${DeletedId} не знайдено`);
+        }
+        return res.json();
+      })
+      .then(json => {
+        const foundId = json.id;
+        console.log('Знайдено курс:', json);
+
+        return fetch(`http://localhost:3000/courses/${foundId}`, {
+          method: 'DELETE',
+        });
+      })
+      .then(res => {
+        if (res.status === 204) {
+          console.log('✅ Курс успішно видалено.');
+          document.getElementById('courseIdInputDelete').value = ''; // Очистити input
+        } else {
+          return res.text().then(text => {
+            console.warn('⚠️ Відповідь сервера:', text);
+          });
+        }
+      })
+      .catch(err => {
+        console.error('❌ Помилка:', err.message);
+      });
+  }
+</script>
+
+<!-- Зміна одного -->
+ <div>
+  <input type="number" id="courseIdInputUpdate" placeholder="Введіть ID курсу для зміни">
+  <input type="text" id="courseTitleInputUpdate" placeholder="Введіть нову назву курсу для зміни">
+  <button onclick="updateCourseById()">Змінити курс</button>
+</div>
+<script>
+  function updateCourseById() {
+    const inputTitle = document.getElementById('courseTitleInputUpdate');
+    const inputId = document.getElementById('courseIdInputUpdate');
+
+    const currentTitleUpdatet = inputTitle.value.trim();
+    const UpdateId = inputId.value.trim();
+
+    if (currentTitleUpdatet === '') {
+      alert('Поле назви не може бути порожнім');
+      return;
+    }
+
+    if (!UpdateId || isNaN(UpdateId)) {
+      alert('Введіть коректний ID курсу');
+      return;
+    }
+
+    fetch(`http://localhost:3000/courses/${UpdateId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: currentTitleUpdatet })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Курс з id=${UpdateId} не знайдено`);
+        }
+        return res.json();
+      })
+      .then(json => {
+        console.log('✅ Курс успішно змінено:', json);
+        // Очистити поля
+        inputTitle.value = '';
+        inputId.value = '';
+      })
+      .catch(err => {
+        console.error('❌ Помилка:', err.message);
+      });
+  }
+</script>
+
+
+
+
+</body>
+</html>
