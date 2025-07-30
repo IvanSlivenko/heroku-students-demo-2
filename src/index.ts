@@ -44,11 +44,12 @@ const writeDb = (data: { courses: Course[] }) => {
 
 app.use(express.json());
 
-// Робимо папку з index.html доступною
-app.use(express.static(__dirname));
-// Головний маршрут -> index.html
+// Статика з папки public
+app.use(express.static(path.join(__dirname, "../public")));
+
+// Головна сторінка
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 // 🔍 Отримати всі курси (з фільтром за назвою)
